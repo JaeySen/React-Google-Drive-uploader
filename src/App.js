@@ -183,10 +183,10 @@ const App = () => {
   // For upload we don't use gapi.client.drive.files.create() because it doesn't accept file content
 
   const get = (fileId) => {
-    window.gapi.client.drive.files
-      .get({ fileId, alt: "media" })
+    gapi.client.drive.files
+      .get({fileId})
       .then((result) =>
-        console.log("Fetched. Result: " + JSON.stringify(result.result))
+        console.log("Fetched. Result: " + JSON.stringify(result))
       )
       .catch((err) => console.error(err));
   };
