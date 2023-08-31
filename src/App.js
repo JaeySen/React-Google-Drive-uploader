@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { gapi } from 'gapi-script';
 
 const App = () => {
   const [config, setConfig] = useState({
@@ -7,6 +8,8 @@ const App = () => {
     TOKEN_PATH: "token.json",
     SCOPES: ["https://www.googleapis.com/auth/drive"],
   });
+
+  // const [ _gapi, setGapi ] = useState(null);
 
   // Replace with your API key, copied from https://console.cloud.google.com/apis/credentials
   const apiKey = "AIzaSyCS16uoSkvAw8qWISlAPLYPNCC4__6qYps";
@@ -24,31 +27,9 @@ const App = () => {
   let oauthToken, fileId;
 
   useEffect(() => {
-    const script = document.createElement("script");
-
-    script.src = "https://apis.google.com/js/api.js?onload=loadScripts";
-    script.type = "text/javascript";
-    script.async = true;
-
-    document.body.appendChild(script);
-
-    // const plaform = document.createElement('script');
-    // plaform.src = "https://apis.google.com/js/platform.js";
-    // document.body.appendChild(plaform);
-
-    const initScript = document.createElement("script");
-    initScript.innerHTML = `
-			function loadScripts() {
-				gapi.load('auth');
-				gapi.load('picker');
-				gapi.load('client', () => gapi.client.load('drive', 'v3'));
-			}
-		`;
-    initScript.type = "text/javascript";
-    document.body.appendChild(initScript);
-
-    // return () => {
-    // };
+    gapi.load('auth');
+		gapi.load('picker');
+		gapi.load('client', () => gapi.client.load('drive', 'v3'));
   }, []);
 
   // On file select (from the pop up)
@@ -56,29 +37,40 @@ const App = () => {
     setConfig({ selectedFile: event.target.files[0] });
   };
 
-  const listFiles = async (auth) => {
+  const listFiles = () => {
+    var request = gapi.client.drive.files.list({
+      'maxResults': 10,
+      // includeItemsFromAllDrives: true,
+      // supportsAllDrives: true,
+      // corpora: 'drive',
+      // driveId: '1Dy8K6ka6m36m6nxfneJSvhYqzGVd0EMW',
+      q: 'name contains \'TESTED\' and \'1Dy8K6ka6m36m6nxfneJSvhYqzGVd0EMW\' in parents',
+    });
 
-    fetch("https://www.googleapis.com/drive/v3/files" + new URLSearchParams({
-		corpora: 'drive',
-		driveId: '1Dy8K6ka6m36m6nxfneJSvhYqzGVd0EMW',
-		q: 'name contains \'TESTED\'', 
-	}), {
-		// mode: "no-cors", //TODO: fix CORS on localhost:3000
-		method: "GET",
-		headers: new Headers({
-		  Authorization: "Bearer " + localStorage.getItem("token"),
-		//   'Access-Control-Allow-Origin': 'http://localhost:3000/',
-		  "Access-Control-Allow-Origin": "*",
-		  "Access-Control-Allow-Methods": "GET",
-		  "Access-Control-Allow-Headers": "Content-Type, Authorization"
-		})
-		
-	})
-      .then((result) => result.json(), (err) => console.log("error: ", err))
-    //   .then((value) => {
-    //     console.log("Uploaded. Result:\n" + JSON.stringify(value, null, 2));
-    //   });
+    // var IdRead;
+
+    request.execute(function(resp) {
+      console.log(resp);
+      appendPre('Files:');
+      var files = resp.files;
+      if (files && files.length > 0) {
+        for (var i = 0; i < files.length; i++) {
+          // IdRead = files[0].id;
+          var file = files[i];
+          appendPre(file.name + ' (' + file.id + ')');
+        }
+      } else {
+        appendPre('No files found.');
+      }
+    });
   };
+
+  function appendPre(message) {
+    var pre = document.getElementById('output');
+    var textContent = document.createTextNode(message + '\n');
+    pre.appendChild(textContent);
+ 
+  }
 
   const upload = () => {
     const metadata = {
@@ -133,6 +125,7 @@ const App = () => {
         <div>
           <br />
           <h4>Choose before Pressing the Upload button</h4>
+          <div  id="output"></div>
         </div>
       );
     }
@@ -142,12 +135,11 @@ const App = () => {
 
   function authorize() {
     if (!window.gapi.auth) return;
-    window.gapi.auth.authorize(
-      {
+    window.gapi.auth.authorize({
         client_id: clientId,
         scope: ["https://www.googleapis.com/auth/drive"],
         plugin_name: "Web client 1",
-        immediate: false,
+        immediate: false
       },
       (result) => {
         if (result.error) {
