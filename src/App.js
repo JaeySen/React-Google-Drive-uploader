@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { gapi } from 'gapi-script';
+require('dotenv').config();
 
 const App = () => {
   const [config, setConfig] = useState({
@@ -12,14 +13,13 @@ const App = () => {
   // const [ _gapi, setGapi ] = useState(null);
 
   // Replace with your API key, copied from https://console.cloud.google.com/apis/credentials
-  const apiKey = "AIzaSyCS16uoSkvAw8qWISlAPLYPNCC4__6qYps";
+  const apiKey = process.env.REACT_APP_API_KEY;
 
   // Replace with your Client ID, copied from https://console.cloud.google.com/apis/credentials
-  const clientId =
-    "1051229922030-in1rp6cmj0n2ccf5b1p6ggtn54hj1sa6.apps.googleusercontent.com";
+  const clientId = process.env.REACT_APP_CLIENT_ID;
 
   // Replace with your Project number, copied from https://console.cloud.google.com/iam-admin/settings
-  const projectNumber = "1051229922030";
+  const projectNumber = process.env.PROJECT_NUMBER;
 
   // Replace with a mime type unique to your application
   const mimeType = `application/my.app`;
@@ -252,7 +252,7 @@ const App = () => {
         </button>
         <button
           id="get"
-          onClick={(fileId) => get("1yueZ7odCTAKCxBy1AGWxckWiShcl2wOW")}
+          onClick={() => get("1yueZ7odCTAKCxBy1AGWxckWiShcl2wOW")}
         >
           Get
         </button>
